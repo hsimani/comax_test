@@ -35,8 +35,6 @@ export async function createComaxOrder(order) {
     (Number(i.totalSum ?? (Number(i.quantity) * Number(i.price) * (1 - Number(i.discountPercent ?? 0) / 100)))).toFixed(2)
   );
   const itemRemarks = items.map(i => i.remarks ?? '');
-  const blankItems = items.map(() => '');
-
   // Keep all fields in the operation's documented order. Optional values default to empty strings.
   const fields = [
     ['CustomerID', order.customerId],
@@ -58,8 +56,8 @@ export async function createComaxOrder(order) {
     stringArray('DiscountPercent', discounts),
     stringArray('TotalSum', totals),
     stringArray('ItemRemarks', itemRemarks),
-    stringArray('PromoID', blankItems),
-    stringArray('PromoRank', blankItems),
+    stringArray('PromoID', items.map(i => i.promoId ?? '')),
+    stringArray('PromoRank', items.map(i => i.promoRank ?? '')),
   ].join('');
 
   const c = order.customer ?? {};

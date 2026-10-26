@@ -7,6 +7,8 @@ const itemSchema = z.object({
   discountPercent: z.number().min(0).max(100).optional().default(0),
   totalSum: z.number().nonnegative().finite().optional(),
   remarks: z.string().max(500).optional(),
+  promoId: z.string().max(100).optional(),
+  promoRank: z.string().max(100).optional(),
 });
 
 export const orderSchema = z.object({
@@ -15,6 +17,8 @@ export const orderSchema = z.object({
   storeId: z.string().optional(),
   priceListId: z.string().optional(),
   mode: z.enum(['Add', 'Update', 'AddOrUpdate']).optional(),
+  docNumber: z.string().max(100).optional(),
+  manualDocNumber: z.string().max(100).optional(),
   remarks: z.string().max(2000).optional(),
   details: z.string().max(2000).optional(),
   doJ5: z.string().optional(),
@@ -27,6 +31,23 @@ export const orderSchema = z.object({
   creditTransactionType: z.string().optional(),
   creditTokenNumber: z.string().optional(),
   priceFromPriceList: z.string().optional(),
+  delivery: z.object({
+    date: z.string().max(100).optional(),
+    hourFrom: z.string().max(100).optional(),
+    hourTo: z.string().max(100).optional(),
+    address: z.string().max(500).optional(),
+    addressNumber: z.string().max(100).optional(),
+    city: z.string().max(200).optional(),
+    zip: z.string().max(30).optional(),
+    contactName: z.string().max(200).optional(),
+    remarks: z.string().max(2000).optional(),
+    floor: z.string().max(100).optional(),
+    flat: z.string().max(100).optional(),
+    phone: z.string().max(80).optional(),
+    phone2: z.string().max(80).optional(),
+    email: z.string().max(254).optional(),
+    type: z.string().max(100).optional(),
+  }).optional(),
   customer: z.object({
     name: z.string().max(200).optional(),
     address: z.string().max(500).optional(),

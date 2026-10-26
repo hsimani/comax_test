@@ -38,6 +38,8 @@ curl -X POST http://localhost:3000/api/orders \
 ## Vue
 Copy `frontend/src/services/comaxOrders.js` into your Vue app and call `createComaxOrder(order)`. Ensure your Vue dev server proxies `/api` to `http://localhost:3000`, or set `VITE_API_BASE_URL`.
 
+The runnable app in `frontend_comax` is also connected to `POST /api/orders`. Start the backend and Vue dev server in separate terminals. Its order form takes a Comax customer ID, Comax item ID, unit price, and quantity; configure Comax credentials, store, and price list only in `backend/.env`. The Vite dev server proxies `/api` to the backend.
+
 ## Important integration notes
 - The SOAP operation uses parallel arrays for item IDs, quantities, prices, discounts, totals, etc. This implementation builds them from the same `items` array to preserve alignment.
 - SOAP's response can contain business-level errors even when HTTP status is 200. The backend returns those errors to Vue.

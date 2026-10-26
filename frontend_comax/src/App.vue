@@ -1,42 +1,59 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
+import { createComaxOrder } from './services/comaxOrders.js'
 
 const order = reactive({
   customerName: '',
   email: '',
+  customerId: '',
   product: '',
+  price: '',
   quantity: 1,
   notes: ''
 })
 
 const submittedOrder = ref(null)
 const errorMessage = ref('')
+const isSubmitting = ref(false)
+const orderReference = ref('')
 
-function submitOrder() {
+async function submitOrder() {
+  if (isSubmitting.value) return
+
   errorMessage.value = ''
+  submittedOrder.value = null
+  isSubmitting.value = true
+  orderReference.value ||= `WEB-${Date.now()}`
 
-  if (!order.customerName.trim() || !order.email.trim() || !order.product) {
-    errorMessage.value = 'Please complete all required fields.'
-    return
+  try {
+    const result = await createComaxOrder({
+      customerId: order.customerId.trim(),
+      reference: orderReference.value,
+      remarks: order.notes,
+      customer: {
+        name: order.customerName.trim(),
+      },
+      delivery: {
+        email: order.email.trim(),
+      },
+      items: [{
+        sku: order.product.trim(),
+        quantity: order.quantity,
+        price: order.price,
+      }],
+    })
+
+    submittedOrder.value = {
+      customerName: order.customerName,
+      documentNumber: result.documentNumber,
+    }
+    orderReference.value = ''
+  } catch (error) {
+    errorMessage.value = error.message || 'Could not create the order.'
+  } finally {
+    isSubmitting.value = false
   }
-
-  if (!Number.isInteger(order.quantity) || order.quantity < 1) {
-    errorMessage.value = 'Quantity must be at least 1.'
-    return
-  }
-
-  // In a real application, send this data to your backend API.
-  submittedOrder.value = { ...order }
-  console.log('Order submitted:', submittedOrder.value)
-
-  Object.assign(order, {
-    customerName: '',
-    email: '',
-    product: '',
-    quantity: 1,
-    notes: ''
-  })
 }
 </script>
 
@@ -59,7 +76,8 @@ function submitOrder() {
                 role="status"
               >
                 Order submitted successfully for
-                {{ submittedOrder.customerName }}!
+                {{ submittedOrder.customerName }}.
+                Comax document number: {{ submittedOrder.documentNumber ?? 'not returned' }}.
               </div>
 
               <div
@@ -100,20 +118,44 @@ function submitOrder() {
                 </div>
 
                 <div class="mb-3">
-                  <label for="product" class="form-label">
-                    Product *
+                  <label for="customerId" class="form-label">
+                    Comax customer ID *
                   </label>
-                  <select
+                  <input
+                    id="customerId"
+                    v-model="order.customerId"
+                    type="text"
+                    class="form-control"
+                    required
+                  />
+                </div>
+
+                <div class="mb-3">
+                  <label for="product" class="form-label">
+                    Comax item ID *
+                  </label>
+                  <input
                     id="product"
                     v-model="order.product"
-                    class="form-select"
+                    type="text"
+                    class="form-control"
                     required
-                  >
-                    <option disabled value="">Select a product</option>
-                    <option value="Laptop">Laptop</option>
-                    <option value="Monitor">Monitor</option>
-                    <option value="Keyboard">Keyboard</option>
-                  </select>
+                  />
+                </div>
+
+                <div class="mb-3">
+                  <label for="price" class="form-label">
+                    Unit price *
+                  </label>
+                  <input
+                    id="price"
+                    v-model.number="order.price"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    class="form-control"
+                    required
+                  />
                 </div>
 
                 <div class="mb-3">
@@ -147,8 +189,9 @@ function submitOrder() {
                 <button
                   type="submit"
                   class="btn btn-primary w-100"
+                  :disabled="isSubmitting"
                 >
-                  Submit Order
+                  {{ isSubmitting ? 'Submitting order…' : 'Submit Order' }}
                 </button>
               </form>
             </div>
